@@ -10,5 +10,5 @@ This is the back-end side of the full-stack (MERN) application called 'Memories 
 * The back-end and the front-end communicate with each other, just as with 3rd party software through the so-called API, they can work in different ways, as long as they communicate the same language (API).
 * Functionalities: manages, processes and protects information - handle requests from the Clients.
 
-## Discussion: 
+## Discussion
 If you have any problems with the code or do not understand some part of the code, you can discuss with [me](mailto:katyperrycbt@gmail.com). Happy coding!

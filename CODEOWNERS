@@ -1,0 +1,15 @@
+
+controllers/    @katyperrycbt
+middleware/ @katyperrycbt
+models/ @katyperrycbt
+routes/ @katyperrycbt
+.gitignore  @katyperrycbt
+CODEOWNERS  @katyperrycbt
+public/     @katyperrycbt
+README.md   @katyperrycbt
+CODE_OF_CONDUCT.md @katyperrycbt
+package.json   @katyperrycbt
+package-lock.json   @katyperrycbt
+LICENSE @katyperrycbt
+index.js @katyperrycbt
+Procfile @katyperrycbt

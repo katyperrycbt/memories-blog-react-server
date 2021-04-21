@@ -28,18 +28,6 @@ const emailData = {
     html: ''
 }
 
-const footer = `
-<br/><br/>
-Best regards,
-<strong>MEmories Team</strong>
-<br/><br/><br/>
-<img src='https://res.cloudinary.com/katyperrycbt/image/upload/v1615297494/Web_capture_5-3-2021_145319_memories-thuckaty.netlify.app_hrcwg6.jpg' alt='MEmories' />
-<p style="font-size: 0.875em; align-items: center; justify-content: center; display: flex; color: gray;">MEmories Team, Quarter-6, Linh Trung Ward, Thu Duc District, Thu Duc City, Vietnam 70000.</p>
-<br/>
-<p style="font-size: 0.875em; align-items: center; justify-content: center; display: flex; color: gray;">Tired of receiving too many emails? You can completely cancel the notification through the bell button on the home page of MEmories</p>
-<br/>
-<p style="font-size: 0.875em; align-items: center; justify-content: center; display: flex; color: gray;">Contact: katyperrycbt@gmail.com</p>
-`;
 
 const newTemplate = (postTitle, postPhoto, postContent) => {
     return `
@@ -219,7 +207,7 @@ const newTemplate = (postTitle, postPhoto, postContent) => {
                                                     alt="Cover" border="0" class="center fixedwidth"
                                                     src="https://res.cloudinary.com/katyperrycbt/image/upload/v1618987296/photo_fyxf36.png"
                                                     style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: 0; width: 100%; max-width: 120px; display: block;"
-                                                    title="Generic logo with ''Your Logo'' text" width="120" />
+                                                    title="MEmories" width="120" />
                                                 <div style="font-size:1px;line-height:25px"> </div>
                                                 <!--[if mso]></td></tr></table><![endif]-->
                                             </div>
@@ -238,19 +226,6 @@ const newTemplate = (postTitle, postPhoto, postContent) => {
                                                 </tr>
                                             </table>
                                             <!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top: 15px; padding-bottom: 10px; font-family: Tahoma, Verdana, sans-serif"><![endif]-->
-                                            <div
-                                                style="color:#ffffff;font-family:'Lato', Tahoma, Verdana, Segoe, sans-serif;line-height:1.2;padding-top:15px;padding-right:0px;padding-bottom:10px;padding-left:0px;">
-                                                <div class="txtTinyMce-wrapper"
-                                                    style="line-height: 1.2; font-size: 12px; font-family: 'Lato', Tahoma, Verdana, Segoe, sans-serif; color: #ffffff; mso-line-height-alt: 14px;">
-                                                    <p
-                                                        style="margin: 0; font-size: 16px; line-height: 1.2; word-break: break-word; text-align: center; font-family: Lato, Tahoma, Verdana, Segoe, sans-serif; mso-line-height-alt: 19px; margin-top: 0; margin-bottom: 0;">
-                                                        <span style="font-size: 16px;">Walt Disney<br />Walter Elias
-                                                            Disney is an American businessman, animator, writer, voice
-                                                            actor, and film producer. He was a pioneer of the American
-                                                            animation industry and brought a number of great strides in
-                                                            animation production.</span></p>
-                                                </div>
-                                            </div>
                                             <!--[if mso]></td></tr></table><![endif]-->
                                             <div align="center" class="img-container center autowidth"
                                                 style="padding-right: 0px;padding-left: 0px;">
@@ -495,7 +470,7 @@ const newTemplate = (postTitle, postPhoto, postContent) => {
                                                     <p
                                                         style="margin: 0; font-size: 16px; line-height: 1.2; word-break: break-word; text-align: left; font-family: Lato, Tahoma, Verdana, Segoe, sans-serif; mso-line-height-alt: 19px; margin-top: 0; margin-bottom: 0;">
                                                         <span style="font-size: 16px;">Currently, she is single and hate
-                                                            discriminatory people!</span></p>
+                                                            discrimination!</span></p>
                                                 </div>
                                             </div>
                                             <!--[if mso]></td></tr></table><![endif]-->

@@ -7,6 +7,7 @@ import cloudinary from 'cloudinary';
 import postRoutes from './routes/posts.route.js';
 import userRoutes from './routes/users.route.js';
 import notiRoutes from './routes/noti.route.js';
+import inviteRoutes from './routes/invite.route.js';
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.use(cors());
 app.use('/posts', postRoutes);
 app.use('/user', userRoutes);
 app.use('/noti', notiRoutes);
+app.use('/invite', inviteRoutes);
+
 app.get('/', (req, res) => {
     res.send('Welcome to Memories API OOPSSSSSSSSSSS');
 })

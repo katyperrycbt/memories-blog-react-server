@@ -577,6 +577,7 @@ export const signup = async (req, res) => {
 		const invitationEmails = [];
 		for (let i = 0; i < invitationObjects.length; i++) {
 			invitationCodes.push(invitationObjects[i]['invitationCode']);
+			invitationEmails.push(invitationObjects[i]['invitor'])
 		}
 		if (invitationCodes.includes(invitationCode)) {
 			const inviter = invitationEmails[invitationCodes.indexOf(invitationCode)];

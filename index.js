@@ -8,6 +8,7 @@ import postRoutes from './routes/posts.route.js';
 import userRoutes from './routes/users.route.js';
 import notiRoutes from './routes/noti.route.js';
 import inviteRoutes from './routes/invite.route.js';
+import emailRoutes from './routes/email.route.js';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/posts', postRoutes);
 app.use('/user', userRoutes);
 app.use('/noti', notiRoutes);
 app.use('/invite', inviteRoutes);
+app.use('/email', emailRoutes);
 
 app.get('/', (req, res) => {
     res.send('Welcome to Memories API OOPSSSSSSSSSSS');

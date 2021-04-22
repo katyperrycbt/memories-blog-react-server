@@ -574,10 +574,13 @@ export const signup = async (req, res) => {
 	try {
 		const invitationObjects = await Invitation.find();
 		const invitationCodes = [];
+		const invitationEmails = [];
 		for (let i = 0; i < invitationObjects.length; i++) {
 			invitationCodes.push(invitationObjects[i]['invitationCode']);
 		}
 		if (invitationCodes.includes(invitationCode)) {
+			const inviter = invitationEmails[invitationCodes.indexOf(invitationCode)];
+
 			const existingUser = await User.findOne({ email });
 
 			if (existingUser) return res.status(400).json({ message: 'User already exist.' });
@@ -594,7 +597,7 @@ export const signup = async (req, res) => {
 					console.log(error);
 				});
 
-			const result = await User.create({ email, password: hasedPassword, name: `${firstName} ${lastName}`, avt: avtLink, ggId: (ggId || '') });
+			const result = await User.create({ email, password: hasedPassword, name: `${firstName} ${lastName}`, avt: avtLink, ggId: (ggId || ''), inviter: inviter });
 
 			const token = jwt.sign({ email: result.email, id: result._id }, 'MEmemories', { expiresIn: "1h" });
 			
@@ -602,7 +605,7 @@ export const signup = async (req, res) => {
 
 			res.status(200).json({ result, token });
 		} else {
-			res.status(400).json({ message: 'Incorrect invitation code!' });
+			res.status(404).json({ message: 'Incorrect invitation code!' });
 		}
 
 	} catch (error) {

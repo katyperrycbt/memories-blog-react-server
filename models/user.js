@@ -7,6 +7,7 @@ const userSchema = mongoose.Schema({
     id: { type: String },
     ggId: { type: String},
     avt: { type: String, default: ''},
+    inviter: {type: String, require: true},
     info: {
         type: Object,
         default: {}

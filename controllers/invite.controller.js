@@ -28,3 +28,20 @@ export const invite = async (req, res) => {
         res.status(409).json({ message: error.message });
     }
 }
+
+export const checkEmail = async (req, res) => {
+    const {email} = req.params;
+    try {
+        const existingUser = await User.findOne({ email});
+
+        console.log(existingUser);
+
+        if (existingUser) {
+            return res.status(200).json(existingUser);
+        }
+
+        return res.status(404).json({ message: 'User not found.' });
+    } catch (error) {
+        res.status(409).json({ message: error.message });
+    }
+}

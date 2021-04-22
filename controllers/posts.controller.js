@@ -882,6 +882,13 @@ export const createPosts = async (req, res) => {
 
         post.oops = isUpxi || isGGUpxi;
 
+        if (!post.oops) {
+            const numofPosts = await PostMessage.find({creator: req.userId}).exec();
+            if (numofPosts && numofPosts?.length === 5) {
+                return res.status(400).json({message: 'Each user can only post for maximum 5 posts due to limited storage. We\'re sorry, delete old posts and try again!'})
+            }
+        }
+
         if (post.selectedFile) {
             await cloudinary.v2.uploader.upload(post.selectedFile)
                 .then((result) => {

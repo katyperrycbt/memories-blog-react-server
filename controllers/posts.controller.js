@@ -809,7 +809,7 @@ const sendMail = async (to, subject, html) => {
         html
     };
     mg.messages().send(data, function (error, body) {
-        // console.log(body);
+        if (error) return error;
     });
 }
 
@@ -883,9 +883,9 @@ export const createPosts = async (req, res) => {
         post.oops = isUpxi || isGGUpxi;
 
         if (!post.oops) {
-            const numofPosts = await PostMessage.find({creator: req.userId}).exec();
+            const numofPosts = await PostMessage.find({ creator: req.userId }).exec();
             if (numofPosts && numofPosts?.length === 5) {
-                return res.status(400).json({message: 'Each user can only post for maximum 5 posts due to limited storage. We\'re sorry, delete old posts and try again!'})
+                return res.status(400).json({ message: 'Each user can only post for maximum 5 posts due to limited storage. We\'re sorry, delete old posts and try again!' })
             }
         }
 
@@ -911,16 +911,29 @@ export const createPosts = async (req, res) => {
             try {
                 const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
                 if (us.info.subcribe) {
-                    const subcribe = await Subcribe.findById(process.env.SUBCRIBE);
-                    const subcribeFilter = subcribe.emailList.filter((email) => email !== us.email);
-                    const secure = post.selectedFile.splice(4, 0, 's');
-                    const thisHTML = newTemplate(post.title, secure, post.message)
-                    const emailForm = {
-                        to: subcribeFilter,
-                        subject: `New MEmory from ${us.name}!`,
-                        html: thisHTML
+                    const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
+                    const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
+                    if (thisEmailIsInBlackList.length === 0) {
+                        const secure = post.selectedFile.splice(4, 0, 's');
+                        const thisHTML = newTemplate(post.title, secure, post.message);
+                        const users = await User.find();
+                        const listEmail = [];
+                        for (let i = 0; i < users.length; i++) {
+                            if (users[i].info?.subcribe) {
+                                const temp = blacklist.emailList.filter((email) => email === users[i].email);
+                                if (temp.length === 0) {
+                                    listEmail.push(users[i].email);
+                                }
+                            }
+                        }
+                        console.log(listEmail);
+                        const emailForm = {
+                            to: listEmail,
+                            subject: `New MEmory from ${us.name}!`,
+                            html: thisHTML
+                        }
+                        sendMail(emailForm.to, emailForm.subject, emailForm.html);
                     }
-                    sendMail(emailForm.to, emailForm.subject, emailForm.html);
                 }
             } catch (error) {
                 console.log(error);
@@ -988,32 +1001,17 @@ export const likePost = async (req, res) => {
         const us = mongoose.Types.ObjectId.isValid(post.creator) ? await User.findById(post.creator) : await User.find({ ggId: post.creator });
         const whoHeart = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
         if (us.info.subcribe) {
-            const subcribe = await Subcribe.findById(process.env.SUBCRIBE);
-            let subcribeFilter = '';
-            if (us.email === 'gokusuperfan@gmail.com') {
-                subcribeFilter = 'huuthinh1609@gmail.com'
-            } else if (us.email === 'katyperrycbtwap@gmail.com') {
-                subcribeFilter = 'katyperrycbt@gmail.com'
-            } else if (us.email === 'twitle.1708@gmail.com') {
-                subcribeFilter = 'tuyet.le170800@gmail.com'
-            } else {
-                subcribeFilter = subcribe.emailList.filter((email) => email === us.email);
+            const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
+            const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
+            if (thisEmailIsInBlackList.length === 0) {
+                const thisHTML = newTemplate(post.title, post.selectedFile.splice(4, 0, 's'), post.message)
+                const emailForm = {
+                    to: us.email,
+                    subject: `${whoHeart.name} hearted your MEmory!`,
+                    html: thisHTML
+                }
+                sendMail(emailForm.to, emailForm.subject, emailForm.html);
             }
-            const thisHTML = newTemplate(post.title, post.selectedFile.splice(4, 0, 's'), post.message)
-
-            const emailForm = {
-                to: subcribeFilter,
-                subject: `${whoHeart.name} hearted your MEmory!`,
-                html: thisHTML
-                //     html: `
-                // <h1> Hi </h1>
-                // <br/>
-                // <h3 style="color: blue;"> [${new Date(Date.now()).toDateString()} ${new Date(Date.now()).toTimeString()}] A friend has just reacted to your MEmory. <a href="https://www.oopsmemories.site/">Check it out</a> </h3>
-                // <h3 style="color: green;"> Details: </h3>
-                // <h3 style="color: red;"> [${post.title}] ${post.message.substring(0, 10)}... </h3>
-                // `
-            }
-            sendMail(emailForm.to, emailForm.subject, emailForm.html);
         }
     } catch (error) {
         console.log(error);
@@ -1146,33 +1144,18 @@ export const postComment = async (req, res) => {
                 const postOwnerID = mongoose.Types.ObjectId.isValid(postId) ? await PostMessage.findById(postId) : '';
                 let postOwner = mongoose.Types.ObjectId.isValid(postOwnerID.creator) ? await User.findById(postOwnerID.creator) : await User.find({ ggId: postOwnerID.creator });
                 if (postOwner.info.subcribe) {
-                    const subcribe = await Subcribe.findById(process.env.SUBCRIBE);
-                    let subcribeFilter = '';
-                    if (postOwner.email === 'gokusuperfan@gmail.com') {
-                        subcribeFilter = 'huuthinh1609@gmail.com'
-                    } else if (postOwner.email === 'katyperrycbtwap@gmail.com') {
-                        subcribeFilter = 'katyperrycbt@gmail.com'
-                    } else if (postOwner.email === 'twitle.1708@gmail.com') {
-                        subcribeFilter = 'tuyet.le170800@gmail.com'
-                    } else {
-                        subcribeFilter = subcribe.emailList.filter((email) => email === postOwner.email);
+                    //
+                    const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
+                    const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === postOwner.email);
+                    if (thisEmailIsInBlackList.length === 0) {
+                        const thisHTML = newTemplate(postOwnerID.title, postOwnerID.selectedFile.splice(4, 0, 's'), comment)
+                        const emailForm = {
+                            to: postOwner.email,
+                            subject: `${commenter.name} left a comment in your MEmory!`,
+                            html: thisHTML
+                        }
+                        sendMail(emailForm.to, emailForm.subject, emailForm.html);
                     }
-                    console.log('cmt', subcribeFilter);
-                    const thisHTML = newTemplate(postOwnerID.title, postOwnerID.selectedFile.splice(4, 0, 's'), comment)
-
-                    const emailForm = {
-                        to: subcribeFilter,
-                        subject: `${commenter.name} left a comment in your MEmory!`,
-                        html: thisHTML
-                        //     html: `
-                        // <h1> Hi </h1>
-                        // <br/>
-                        // <h3 style="color: blue;"> [${new Date(Date.now()).toDateString()} ${new Date(Date.now()).toTimeString()}] A friend has just left a comment to your MEmory. <a href="https://www.oopsmemories.site/">Check it out</a> </h3>
-                        // <h3 style="color: green;"> Details: </h3>
-                        // <h3 style="color: red;"> [${postOwnerID.title}] ${comment.substring(0, 10)}... </h3>
-                        // `
-                    }
-                    sendMail(emailForm.to, emailForm.subject, emailForm.html);
                 }
             } catch (error) {
                 console.log(error);
@@ -1243,31 +1226,17 @@ export const starComment = async (req, res) => {
         const us = mongoose.Types.ObjectId.isValid(cmt.commentId) ? await User.findById(cmt.commentId) : await User.find({ ggId: cmt.commentId });
         const whoHeart = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
         if (us.info.subcribe) {
-            const subcribe = await Subcribe.findById(process.env.SUBCRIBE);
-            let subcribeFilter = '';
-            if (us.email === 'gokusuperfan@gmail.com') {
-                subcribeFilter = 'huuthinh1609@gmail.com'
-            } else if (us.email === 'katyperrycbtwap@gmail.com') {
-                subcribeFilter = 'katyperrycbt@gmail.com'
-            } else if (us.email === 'twitle.1708@gmail.com') {
-                subcribeFilter = 'tuyet.le170800@gmail.com'
-            } else {
-                subcribeFilter = subcribe.emailList.filter((email) => email === us.email);
+            const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
+            const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
+            if (thisEmailIsInBlackList.length === 0) {
+                const thisHTML = newTemplate('', 'https://res.cloudinary.com/katyperrycbt/image/upload/v1615297494/Web_capture_5-3-2021_145319_memories-thuckaty.netlify.app_hrcwg6.jpg', cmt.comment)
+                const emailForm = {
+                    to: postOwner.email,
+                    subject: `${whoHeart.name} liked your comment!`,
+                    html: thisHTML
+                }
+                sendMail(emailForm.to, emailForm.subject, emailForm.html);
             }
-            const thisHTML = newTemplate('', 'https://res.cloudinary.com/katyperrycbt/image/upload/v1615297494/Web_capture_5-3-2021_145319_memories-thuckaty.netlify.app_hrcwg6.jpg', cmt.comment)
-
-            const emailForm = {
-                to: subcribeFilter,
-                subject: `${whoHeart.name} liked your comment!`,
-                html: `
-            <h1> Hi </h1>
-            <br/>
-            <h3 style="color: blue;"> [${new Date(Date.now()).toDateString()} ${new Date(Date.now()).toTimeString()}] A friend has just stared to your MEmory. <a href="https://www.oopsmemories.site/">Check it out</a> </h3>
-            <h3 style="color: green;"> Details: </h3>
-            <h3 style="color: red;"> [${cmt.comment.substring(0, 10)}...] </h3>
-            `
-            }
-            sendMail(emailForm.to, emailForm.subject, emailForm.html);
         }
 
         res.status(200).json(updatedComment);

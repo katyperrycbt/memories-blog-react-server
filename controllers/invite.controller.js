@@ -33,9 +33,6 @@ export const checkEmail = async (req, res) => {
     const {email} = req.params;
     try {
         const existingUser = await User.findOne({ email});
-
-        console.log(existingUser);
-
         if (existingUser) {
             return res.status(200).json(existingUser);
         }

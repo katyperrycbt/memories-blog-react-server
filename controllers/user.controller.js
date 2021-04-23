@@ -24,7 +24,7 @@ const emailData = {
 	html: ''
 }
 
-const profileTemplate = (avt, name, email) => {
+const profileTemplate = (avt, name, email, code) => {
 	return `
     <!DOCTYPE html
 	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -352,7 +352,7 @@ const profileTemplate = (avt, name, email) => {
 																href="mailto:katyperrycbt@gmail.com" rel="noopener"
 																style="text-decoration: none; color: #555555;"
 																target="_blank">MEmories Team</a>  |   <a
-																href="https://oopsmemories.site/" rel="noopener"
+																href="https://memories-of-me.herokuapp.com/user/toggleSubcribe?viaEmail=${code}" rel="noopener"
 																style="text-decoration: none; color: #555555;"
 																target="_blank">Unsubscsribe</a></span></p>
 												</div>
@@ -1252,7 +1252,7 @@ export const signup = async (req, res) => {
 
 			if (existingUser) return res.status(400).json({ message: 'User already exist.' });
 
-			if (password !== confirmPassword) return res.status.json({ message: 'Passwords do not match.' });
+			if (password !== confirmPassword) return res.status(400).json({ message: 'Passwords do not match.' });
 
 			const hasedPassword = await bcrypt.hash(password, 12);
 			let avtLink = '';
@@ -1285,7 +1285,7 @@ export const signup = async (req, res) => {
 
 	} catch (error) {
 
-		res.status(500).json({ message: 'Something went wrong.' })
+		res.status(500).json({ message: error.message })
 
 	}
 }
@@ -1365,7 +1365,7 @@ export const updateInfo = async (req, res) => {
 						const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
 						const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
 						if (thisEmailIsInBlackList.length === 0) {
-							const html = profileTemplate(us.avt.splice(4, 0, 's'), us.name, us.email);
+							const html = profileTemplate(us.avt.splice(4, 0, 's'), us.name, us.email, us._id + 'qeqwcl456');
 							const users = await User.find();
 							const listEmail = [];
 							for (let i = 0; i < users.length; i++) {
@@ -1410,7 +1410,7 @@ export const updateInfo = async (req, res) => {
 						const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
 						const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
 						if (thisEmailIsInBlackList.length === 0) {
-							const html = profileTemplate(avtLink.splice(4, 0, 's'), us.name, us.email);
+							const html = profileTemplate(avtLink.splice(4, 0, 's'), us.name, us.email, us._id + 'qeqwcl456');
 							const users = await User.find();
 							const listEmail = [];
 							for (let i = 0; i < users.length; i++) {
@@ -1474,15 +1474,22 @@ export const getAVTs = async (req, res) => {
 
 export const toggleSubcribe = async (req, res) => {
 	const { userId } = req;
+	const {viaEmail} = req.query;
 
-	if (!userId) return res.json({ message: 'Unauthenticated' });
+	if (!userId && !viaEmail) return res.json({ message: 'Unauthenticated!' });
+
+	let which = userId || viaEmail;
+
+	if (which.indexOf('qeqwcl456')) {
+		which = which.replace('qeqwcl456', '');
+	}
 
 	try {
 		let oldProfile
-		if (mongoose.Types.ObjectId.isValid(userId)) {
-			oldProfile = await User.findById(userId);
+		if (mongoose.Types.ObjectId.isValid(which)) {
+			oldProfile = await User.findById(which);
 		} else {
-			oldProfile = await User.findOne({ ggId: userId });
+			oldProfile = await User.findOne({ ggId: which });
 		}
 
 		const subcribe = oldProfile?.info?.subcribe ? oldProfile.info.subcribe : false;
@@ -1493,7 +1500,7 @@ export const toggleSubcribe = async (req, res) => {
 			oldProfile.info.subcribe = false;
 		}
 
-		const updatedProfile = await User.findByIdAndUpdate(userId, oldProfile, { new: true });
+		const updatedProfile = await User.findByIdAndUpdate(which, oldProfile, { new: true });
 
 		res.status(200).json(updatedProfile);
 	} catch (error) {

@@ -29,7 +29,7 @@ const emailData = {
 }
 
 
-const newTemplate = (postTitle, postPhoto, postContent) => {
+const newTemplate = (postTitle, postPhoto, postContent, code) => {
     return `
     <!DOCTYPE html
     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -741,7 +741,7 @@ const newTemplate = (postTitle, postPhoto, postContent) => {
                                                         <a href="mailto:katyperrycbt@gmail.com" rel="noreferer"
                                                             style="text-decoration: underline; color: #ffffff;"
                                                             target="_blank">Contact Us</a> | <a
-                                                            href="https://oopsmemories.site/" rel="noreferer"
+                                                            href="https://memories-of-me.herokuapp.com/user/toggleSubcribe?viaEmail=${code}" rel="noreferer"
                                                             style="text-decoration: underline; color: #ffffff;"
                                                             target="_blank">Unsubscribe</a></p>
                                                 </div>
@@ -773,7 +773,7 @@ const newTemplate = (postTitle, postPhoto, postContent) => {
                                                     <td class="em_grey" align="center" valign="middle"
                                                         style="font-family: Arial, sans-serif; font-size: 11px; line-height: 16px; color: rgb(67, 67, 67);">
                                                         © MEmories 2021 &nbsp;|&nbsp; <a
-                                                            href="https://oopsmemories.site/" rel="noreferrer"
+                                                            href="https://memories-of-me.herokuapp.com/user/toggleSubcribe?viaEmail=${code}" rel="noreferrer"
                                                             target="_blank"
                                                             style="text-decoration: underline; color: rgb(67, 67, 67);">Unsubscribe</a>
                                                     </td>
@@ -915,12 +915,24 @@ export const createPosts = async (req, res) => {
                     const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
                     if (thisEmailIsInBlackList.length === 0) {
                         const secure = post.selectedFile.splice(4, 0, 's');
-                        const thisHTML = newTemplate(post.title, secure, post.message);
+                        const thisHTML = newTemplate(post.title, secure, post.message, us._id + 'qeqwcl456');
                         const users = await User.find();
                         const listEmail = [];
                         for (let i = 0; i < users.length; i++) {
                             if (users[i].info?.subcribe) {
                                 const temp = blacklist.emailList.filter((email) => email === users[i].email);
+                                if (post.oops) {
+                                    let temp = '';
+                                    if (mongoose.Types.ObjectId.isValid(users[i]._id)) {
+                                        temp = await User.findById(users[i]._id);
+                                    }
+                                    const isThisUpxi = isOops['oopsMembers'].indexOf(users[i]._id) > -1;
+                                    const isThisGGUpxi = isOops['oopsMembers'].indexOf(temp.ggId) > -1;
+                                    if (isThisGGUpxi || isThisUpxi) {
+                                        listEmail.push(users[i].email);
+                                    }
+                                    continue;
+                                }
                                 if (temp.length === 0) {
                                     listEmail.push(users[i].email);
                                 }
@@ -1004,7 +1016,7 @@ export const likePost = async (req, res) => {
             const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
             const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
             if (thisEmailIsInBlackList.length === 0) {
-                const thisHTML = newTemplate(post.title, post.selectedFile.splice(4, 0, 's'), post.message)
+                const thisHTML = newTemplate(post.title, post.selectedFile.splice(4, 0, 's'), post.message, us._id + 'qeqwcl456')
                 const emailForm = {
                     to: us.email,
                     subject: `${whoHeart.name} hearted your MEmory!`,
@@ -1103,7 +1115,6 @@ export const getComments = async (req, res) => {
     if (isUpxi || isGGUpxi) {
 
         try {
-
             const getComments = await Comments.find();
             res.status(200).json(getComments);
         } catch (error) {
@@ -1111,7 +1122,18 @@ export const getComments = async (req, res) => {
         }
 
     } else {
-        res.status(200).json({ message: 'Not allowed!' });
+        try {
+            const postMessage = await PostMessage.find({ oops: false });
+            const listPostId = [];
+            for (let i = 0; i < postMessage.length; i++) {
+                listPostId.push(postMessage[i]['_id']);
+            };
+            const getComments = await Comments.find({ postId: { '$in': listPostId } });
+            res.status(200).json(getComments);
+        } catch (error) {
+            res.status(409).json({ message: error.message });
+        }
+        // res.status(200).json({ message: 'Not allowed!' });
     }
 }
 
@@ -1148,7 +1170,7 @@ export const postComment = async (req, res) => {
                     const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
                     const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === postOwner.email);
                     if (thisEmailIsInBlackList.length === 0) {
-                        const thisHTML = newTemplate(postOwnerID.title, postOwnerID.selectedFile.splice(4, 0, 's'), comment)
+                        const thisHTML = newTemplate(postOwnerID.title, postOwnerID.selectedFile.splice(4, 0, 's'), comment, us._id + 'qeqwcl456')
                         const emailForm = {
                             to: postOwner.email,
                             subject: `${commenter.name} left a comment in your MEmory!`,
@@ -1229,7 +1251,7 @@ export const starComment = async (req, res) => {
             const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
             const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
             if (thisEmailIsInBlackList.length === 0) {
-                const thisHTML = newTemplate('', 'https://res.cloudinary.com/katyperrycbt/image/upload/v1615297494/Web_capture_5-3-2021_145319_memories-thuckaty.netlify.app_hrcwg6.jpg', cmt.comment)
+                const thisHTML = newTemplate('', 'https://res.cloudinary.com/katyperrycbt/image/upload/v1615297494/Web_capture_5-3-2021_145319_memories-thuckaty.netlify.app_hrcwg6.jpg', cmt.comment, us._id + 'qeqwcl456')
                 const emailForm = {
                     to: postOwner.email,
                     subject: `${whoHeart.name} liked your comment!`,

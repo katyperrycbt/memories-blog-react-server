@@ -10,4 +10,5 @@ router.get('/getInfo', auth, getInfo);
 router.patch('/updateInfo', auth, updateInfo);
 router.get('/getAVTs', auth, getAVTs)
 router.post('/toggleSubcribe', auth, toggleSubcribe);
+router.get('/toggleSubcribe', toggleSubcribe);
 export default router;

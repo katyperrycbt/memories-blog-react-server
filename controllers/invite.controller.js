@@ -13,7 +13,7 @@ const newInvitationCode = () => {
 export const invite = async (req, res) => {
     const { userId } = req;
     try {
-        const invitor = mongoose.Types.ObjectId.isValid(userId) ? await User.findById(userId) : await User.find({ ggId: userId });
+        const invitor = mongoose.Types.ObjectId.isValid(userId) ? await User.findById(userId) : await User.findOne({ ggId: userId });
         const invitationCode = newInvitationCode();
         const prepareObject = {
             invitor: invitor.email,

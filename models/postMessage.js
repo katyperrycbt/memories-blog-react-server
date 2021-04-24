@@ -23,6 +23,10 @@ const postSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
+    visibility: {
+        type: String,
+        default: 'public'
+    },
     creatorAvt: {
         type: String,
         default: ''

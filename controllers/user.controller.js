@@ -1359,7 +1359,7 @@ export const updateInfo = async (req, res) => {
 				oldProfile.name = `${firstName} ${lastName}`;
 
 				try {
-					const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
+					const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
 					if (us.info.subcribe) {
 						//
 						const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
@@ -1404,7 +1404,7 @@ export const updateInfo = async (req, res) => {
 
 				oldProfile.avt = avtLink;
 				try {
-					const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
+					const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
 					if (us.info.subcribe) {
 						//
 						const blacklist = await Subcribe.findById(process.env.SUBCRIBE);

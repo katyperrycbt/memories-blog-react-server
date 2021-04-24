@@ -909,7 +909,7 @@ export const createPosts = async (req, res) => {
             await newPost.save();
 
             try {
-                const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
+                const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
                 if (us.info.subcribe) {
                     const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
                     const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
@@ -922,6 +922,7 @@ export const createPosts = async (req, res) => {
                             if (users[i].info?.subcribe) {
                                 const temp = blacklist.emailList.filter((email) => email === users[i].email);
                                 if (post.oops) {
+                                    console.log('true');
                                     let temp = '';
                                     if (mongoose.Types.ObjectId.isValid(users[i]._id)) {
                                         temp = await User.findById(users[i]._id);
@@ -1010,8 +1011,8 @@ export const likePost = async (req, res) => {
     const updatedPost = await PostMessage.findByIdAndUpdate(id, post, { new: true });
 
     try {
-        const us = mongoose.Types.ObjectId.isValid(post.creator) ? await User.findById(post.creator) : await User.find({ ggId: post.creator });
-        const whoHeart = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
+        const us = mongoose.Types.ObjectId.isValid(post.creator) ? await User.findById(post.creator) : await User.findOne({ ggId: post.creator });
+        const whoHeart = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
         if (us.info.subcribe) {
             const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
             const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);
@@ -1162,9 +1163,9 @@ export const postComment = async (req, res) => {
             await newComment.save();
 
             try {
-                const commenter = mongoose.Types.ObjectId.isValid(userId) ? await User.findById(userId) : await User.find({ ggId: userId });
+                const commenter = mongoose.Types.ObjectId.isValid(userId) ? await User.findById(userId) : await User.findOne({ ggId: userId });
                 const postOwnerID = mongoose.Types.ObjectId.isValid(postId) ? await PostMessage.findById(postId) : '';
-                let postOwner = mongoose.Types.ObjectId.isValid(postOwnerID.creator) ? await User.findById(postOwnerID.creator) : await User.find({ ggId: postOwnerID.creator });
+                let postOwner = mongoose.Types.ObjectId.isValid(postOwnerID.creator) ? await User.findById(postOwnerID.creator) : await User.findOne({ ggId: postOwnerID.creator });
                 if (postOwner.info.subcribe) {
                     //
                     const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
@@ -1245,8 +1246,8 @@ export const starComment = async (req, res) => {
 
         const updatedComment = await Comments.findByIdAndUpdate(cmtId, cmt, { new: true });
 
-        const us = mongoose.Types.ObjectId.isValid(cmt.commentId) ? await User.findById(cmt.commentId) : await User.find({ ggId: cmt.commentId });
-        const whoHeart = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.find({ ggId: req.userId });
+        const us = mongoose.Types.ObjectId.isValid(cmt.commentId) ? await User.findById(cmt.commentId) : await User.findOne({ ggId: cmt.commentId });
+        const whoHeart = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
         if (us.info.subcribe) {
             const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
             const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === us.email);

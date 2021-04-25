@@ -53,10 +53,40 @@ export const wall = async (req, res) => {
             }
         }
         prepareResult.posts = posts;
-        
+
         return res.status(200).json(prepareResult);
     } catch (error) {
         res.status(404).json({ message: error.message })
     }
 
+}
+
+export const toggleFollow = async (req, res) => {
+    const { userId } = req;
+    const { id } = req.params;
+
+    if (!userId) return res.status(404).json({ message: 'Unauthorized access!' });
+
+    try {
+        let getInfo = mongoose.Types.ObjectId.isValid(userId) ? await User.findById(userId) : await User.findOne({ ggId: userId });;
+        if (!getInfo) return res.status(404).json({ message: 'Oops, something went wrong! Please report this problem!' });
+
+        let follows = getInfo.info?.follow ? getInfo.info.follow : [];
+
+        const followThisUser = (follows.length) ? (follows.indexOf(id) > -1) : false;
+
+        if (followThisUser === false) {
+            follows.push(id);
+            getInfo.info.follow = follows;
+        } else {
+            const index = follows.indexOf(id);
+            getInfo.info.follow.splice(index, 1);
+        }
+        const updatedProfile = await User.findByIdAndUpdate(getInfo._id, getInfo, { new: true });
+
+        res.status(200).json(updatedProfile);
+
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
 }

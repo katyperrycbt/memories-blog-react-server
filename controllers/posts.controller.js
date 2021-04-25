@@ -6,6 +6,7 @@ import Oops from '../models/oops.js';
 import User from '../models/user.js';
 import Comments from '../models/comments.js';
 import Subcribe from '../models/subcribe.js';
+import CryptoJS from 'crypto-js';
 
 import mailgun from 'mailgun-js';
 
@@ -822,7 +823,7 @@ export const getPosts = async (req, res) => {
         const isOops = await Oops.findById(process.env.OOPS);
         let isOOpsGGID;
         if (!mongoose.Types.ObjectId.isValid(req.userId)) {
-            isOOpsGGID = await User.find({ ggId: req.userId });
+            isOOpsGGID = await User.findOne({ ggId: req.userId });
         } else {
             isOOpsGGID = await User.findById(req.userId);
         }
@@ -867,6 +868,7 @@ export const getPosts = async (req, res) => {
 
 export const createPosts = async (req, res) => {
     const post = req.body;
+    const { visibility } = post;
 
     if (!req.userId) {
         res.status(404).json({ message: 'Unauthorized access!' });
@@ -876,6 +878,8 @@ export const createPosts = async (req, res) => {
         let isGGOop = '';
         if (mongoose.Types.ObjectId.isValid(req.userId)) {
             isGGOop = await User.findById(req.userId);
+        } else {
+            isGGOop = await User.findOne({ ggId: req.userId });
         }
         const isUpxi = isOops['oopsMembers'].indexOf(req.userId) > -1;
         const isGGUpxi = isOops['oopsMembers'].indexOf(isGGOop.ggId) > -1;
@@ -901,8 +905,31 @@ export const createPosts = async (req, res) => {
         } else {
             post.selectedFile = '';
         }
+        let newPost = {};
 
-        const newPost = new PostMessage({ ...post, creator: req.userId, createdAt: new Date().toISOString() });
+        if (visibility && visibility === 'onlyMe') {
+            let temp = {};
+            console.log('true');
+            for (var key of Object.keys(post)) {
+                let encrypt = '';
+                if (typeof post[key] === 'object' && post[key] !== null) {
+
+                    // encrypt = CryptoJS.AES.encrypt(JSON.stringify(post[key]), req.userId).toString();
+                    encrypt =post[key];
+                } else {
+                    if (['tags', 'visibility', 'oops', 'createdAt'].includes(key)) {
+                        encrypt = post[key];
+                    } else {
+                        encrypt = CryptoJS.AES.encrypt(post[key].toString(), req.userId).toString();
+                    }
+                }
+                temp[key] = encrypt;
+                console.log(temp);
+            }
+            newPost = new PostMessage({ ...temp, creator: req.userId, createdAt: new Date().toISOString() });;
+        } else {
+            newPost = new PostMessage({ ...post, creator: req.userId, createdAt: new Date().toISOString() });
+        }
 
         try {
 
@@ -1057,7 +1084,7 @@ export const resetAndGetPosts = async (req, res) => {
     const isOops = await Oops.findById(process.env.OOPS);
     let isOOpsGGID;
     if (!mongoose.Types.ObjectId.isValid(req.userId)) {
-        isOOpsGGID = await User.find({ ggId: req.userId });
+        isOOpsGGID = await User.findOne({ ggId: req.userId });
     } else {
         isOOpsGGID = await User.findById(req.userId);
     }
@@ -1106,7 +1133,7 @@ export const getComments = async (req, res) => {
     const isOops = await Oops.findById(process.env.OOPS);
     let isOOpsGGID;
     if (!mongoose.Types.ObjectId.isValid(req.userId)) {
-        isOOpsGGID = await User.find({ ggId: req.userId });
+        isOOpsGGID = await User.findOne({ ggId: req.userId });
     } else {
         isOOpsGGID = await User.findById(req.userId);
     }
@@ -1147,7 +1174,7 @@ export const postComment = async (req, res) => {
     const isOops = await Oops.findById(process.env.OOPS);
     let isOOpsGGID;
     if (!mongoose.Types.ObjectId.isValid(req.userId)) {
-        isOOpsGGID = await User.find({ ggId: req.userId });
+        isOOpsGGID = await User.findOne({ ggId: req.userId });
     } else {
         isOOpsGGID = await User.findById(req.userId);
     }
@@ -1171,7 +1198,7 @@ export const postComment = async (req, res) => {
                     const blacklist = await Subcribe.findById(process.env.SUBCRIBE);
                     const thisEmailIsInBlackList = blacklist.emailList.filter((email) => email === postOwner.email);
                     if (thisEmailIsInBlackList.length === 0) {
-                        const thisHTML = newTemplate(postOwnerID.title, postOwnerID.selectedFile.splice(4, 0, 's'), comment, us._id + 'qeqwcl456')
+                        const thisHTML = newTemplate(postOwnerID.title, postOwnerID.selectedFile.splice(4, 0, 's'), comment, postOwner._id + 'qeqwcl456')
                         const emailForm = {
                             to: postOwner.email,
                             subject: `${commenter.name} left a comment in your MEmory!`,

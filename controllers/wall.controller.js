@@ -134,7 +134,7 @@ export const see = async (req, res) => {
                 if (getPost['creator'] !== userId) return res.status(404).json({ message: 'Nothing!' });
                 let prepare = {};
                 for (var key of Object.keys(getPost)) {
-                    const temp = CryptoJS.AES.decrypt(getPost[key], getPost._id);
+                    const temp = CryptoJS.AES.decrypt(getPost[key], userId);
                     const original = temp.toString(CryptoJS.enc.Utf8);
                     prepare[key] = original;
                 }

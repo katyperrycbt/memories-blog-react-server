@@ -832,7 +832,24 @@ export const getPosts = async (req, res) => {
 
         if (isUpxi || isGGUpxi) {
             try {
-                const postMessage = await PostMessage.find();
+                let postMessage = await PostMessage.find();
+                let filter = postMessage.filter((each) => each.visibility === 'onlyMe');
+
+                for (let i = 0; i < filter.length; i++) {
+                    const temp = postMessage.indexOf(filter[i]);
+                    if (filter[i]['creator'] === req.userId) {
+
+                        filter[i]['title'] = CryptoJS.AES.decrypt(filter[i]['title'], req.userId).toString(CryptoJS.enc.Utf8);
+                        filter[i]['message'] = CryptoJS.AES.decrypt(filter[i]['message'], req.userId).toString(CryptoJS.enc.Utf8);
+                        filter[i]['selectedFile'] = CryptoJS.AES.decrypt(filter[i]['selectedFile'], req.userId).toString(CryptoJS.enc.Utf8);
+                        filter[i]['creatorAvt'] = CryptoJS.AES.decrypt(filter[i]['creatorAvt'], req.userId).toString(CryptoJS.enc.Utf8);
+                        filter[i]['name'] = CryptoJS.AES.decrypt(filter[i]['name'], req.userId).toString(CryptoJS.enc.Utf8);
+
+                        postMessage[temp] = filter[i];
+                    } else {
+                        postMessage.splice(temp, 1);
+                    }
+                }
 
                 res.status(200).json(postMessage);
             } catch (error) {
@@ -841,6 +858,7 @@ export const getPosts = async (req, res) => {
         } else {
             try {
                 let postMessage = await PostMessage.find({ oops: false });
+
                 if (postMessage.length === 0) {
                     postMessage = [
                         {
@@ -856,9 +874,28 @@ export const getPosts = async (req, res) => {
                             __v: 0,
                             _id: 'null'
                         }
-                    ]
+                    ];
+                    return res.status(200).json(postMessage);
+                } else {
+                    let filter = postMessage.filter((each) => each.visibility === 'onlyMe');
+
+                    for (let i = 0; i < filter.length; i++) {
+                        const temp = postMessage.indexOf(filter[i]);
+                        if (filter[i]['creator'] === req.userId) {
+
+                            filter[i]['title'] = CryptoJS.AES.decrypt(filter[i]['title'], req.userId).toString(CryptoJS.enc.Utf8);
+                            filter[i]['message'] = CryptoJS.AES.decrypt(filter[i]['message'], req.userId).toString(CryptoJS.enc.Utf8);
+                            filter[i]['selectedFile'] = CryptoJS.AES.decrypt(filter[i]['selectedFile'], req.userId).toString(CryptoJS.enc.Utf8);
+                            filter[i]['creatorAvt'] = CryptoJS.AES.decrypt(filter[i]['creatorAvt'], req.userId).toString(CryptoJS.enc.Utf8);
+                            filter[i]['name'] = CryptoJS.AES.decrypt(filter[i]['name'], req.userId).toString(CryptoJS.enc.Utf8);
+
+                            postMessage[temp] = filter[i];
+                        } else {
+                            postMessage.splice(temp, 1);
+                        }
+                    }
+                    return res.status(200).json(postMessage);
                 }
-                res.status(200).json(postMessage);
             } catch (error) {
                 res.status(404).json({ message: error.message })
             }
@@ -906,16 +943,15 @@ export const createPosts = async (req, res) => {
             post.selectedFile = '';
         }
         let newPost = {};
-
+        let encryptNewPost = {};
         if (visibility && visibility === 'onlyMe') {
-            let temp = {};
             console.log('true');
             for (var key of Object.keys(post)) {
                 let encrypt = '';
                 if (typeof post[key] === 'object' && post[key] !== null) {
 
                     // encrypt = CryptoJS.AES.encrypt(JSON.stringify(post[key]), req.userId).toString();
-                    encrypt =post[key];
+                    encrypt = post[key];
                 } else {
                     if (['tags', 'visibility', 'oops', 'createdAt'].includes(key)) {
                         encrypt = post[key];
@@ -923,10 +959,10 @@ export const createPosts = async (req, res) => {
                         encrypt = CryptoJS.AES.encrypt(post[key].toString(), req.userId).toString();
                     }
                 }
-                temp[key] = encrypt;
-                console.log(temp);
+                encryptNewPost[key] = encrypt;
+                console.log(encryptNewPost);
             }
-            newPost = new PostMessage({ ...temp, creator: req.userId, createdAt: new Date().toISOString() });;
+            newPost = new PostMessage({ ...encryptNewPost, creator: req.userId, createdAt: new Date().toISOString() });;
         } else {
             newPost = new PostMessage({ ...post, creator: req.userId, createdAt: new Date().toISOString() });
         }
@@ -934,6 +970,8 @@ export const createPosts = async (req, res) => {
         try {
 
             await newPost.save();
+
+            if (visibility && visibility === 'onlyMe') return res.status(201).json(newPost);
 
             try {
                 const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });

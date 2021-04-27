@@ -1056,7 +1056,7 @@ export const updatePost = async (req, res) => {
     const { id: _id } = req.params;
 
     let post = req.body;
-    // console.log(post);
+    
     try {
         if (post.selectedFile) {
             await cloudinary.v2.uploader.upload(post.selectedFile)
@@ -1066,15 +1066,37 @@ export const updatePost = async (req, res) => {
                 }).catch((error) => {
                     console.log(error);
                 });
-        } 
+        }
         // console.log(post);
-        const prepare = {
+        const oldPost = await PostMessage.findById(_id);
+
+        if (post.visibility && post.visibility === 'onlyMe') {
+            post['title'] = post['title'] ? CryptoJS.AES.encrypt(post['title'].toString(), req.userId).toString() : (oldPost.visibility !== 'onlyMe' ? CryptoJS.AES.encrypt(oldPost['title'].toString(), req.userId).toString() : oldPost['title']);
+            post['message'] = post['message'] ? CryptoJS.AES.encrypt(post['message'].toString(), req.userId).toString() : (oldPost.visibility !== 'onlyMe' ? CryptoJS.AES.encrypt(oldPost['message'].toString(), req.userId).toString() : oldPost['message']);
+            post['selectedFile'] = post['selectedFile'] ? CryptoJS.AES.encrypt(post['selectedFile'].toString(), req.userId).toString(): (oldPost.visibility !== 'onlyMe' ? CryptoJS.AES.encrypt(oldPost['selectedFile'].toString(), req.userId).toString() : oldPost['selectedFile']);
+            post['creatorAvt'] = post['creatorAvt'] ?  CryptoJS.AES.encrypt(post['creatorAvt'].toString(), req.userId).toString() : (oldPost.visibility !== 'onlyMe' ? CryptoJS.AES.encrypt(oldPost['creatorAvt'].toString(), req.userId).toString() : oldPost['creatorAvt']);
+            post['name'] =  post['name'] ? CryptoJS.AES.encrypt(post['name'], req.userId).toString(): (oldPost.visibility !== 'onlyMe' ? CryptoJS.AES.encrypt(oldPost['name'].toString(), req.userId).toString() : oldPost['name']);
+
+
+        } else if (post.visibility && post.visibility !== 'onlyMe' && oldPost.visibility === 'onlyMe') {
+            post['title'] = post['title'] ? post['title'] : CryptoJS.AES.decrypt(oldPost['title'], req.userId).toString(CryptoJS.enc.Utf8);
+            post['message'] = post['message'] ? post['message'] : CryptoJS.AES.decrypt(oldPost['message'], req.userId).toString(CryptoJS.enc.Utf8);
+            post['selectedFile'] = post['selectedFile'] ? post['selectedFile'] : CryptoJS.AES.decrypt(oldPost['selectedFile'], req.userId).toString(CryptoJS.enc.Utf8);
+            post['creatorAvt'] = post['creatorAvt'] ? post['creatorAvt'] : CryptoJS.AES.decrypt(oldPost['creatorAvt'], req.userId).toString(CryptoJS.enc.Utf8);
+            post['name'] = post['name'] ? post['name'] : CryptoJS.AES.decrypt(oldPost['name'], req.userId).toString(CryptoJS.enc.Utf8);
+
+        }
+
+        let prepare = {};
+
+
+        prepare = {
             ...post,
             modified: true,
             _id
         }
+
         if (!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No post with that id');
-        // const oldPost = await PostMessage.findById(_id);
         const updatedPost = await PostMessage.findByIdAndUpdate(_id, { $set: prepare }, { new: true });
         // console.log(updatePost);
         // const temp = await PostMessage.findById(_id);

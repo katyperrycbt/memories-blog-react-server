@@ -106,7 +106,7 @@ export const see = async (req, res) => {
         switch (visibility) {
             case 'public':
                 return res.status(200).json(getPost);
-            case 'follower':
+            case 'followers':
                 if (!userId) return res.status(404).json({ message: 'Log in and follow this user to see this MEmory!' });
                 const getInfo = mongoose.Types.ObjectId.isValid(userId) ? await User.findById(userId) : await User.findOne({ ggId: userId });
                 const followings = getInfo ? getInfo?.info?.follow : [];

@@ -851,6 +851,16 @@ export const getPosts = async (req, res) => {
                     }
                 }
 
+                let filter2 = postMessage.filter((each) => each.visibility === 'followers');
+                const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
+                const youFollow = us.info?.follow ? us.info.follow : [];
+                
+                for (let i = 0; i < filter2.length; i++) {
+                    const temp2 = postMessage.indexOf(filter2[i]);
+                    if (!youFollow.includes(filter2[i]['creator'])) postMessage.splice(temp2, 1);
+                }
+
+
                 res.status(200).json(postMessage);
             } catch (error) {
                 res.status(404).json({ message: error.message })
@@ -894,6 +904,16 @@ export const getPosts = async (req, res) => {
                             postMessage.splice(temp, 1);
                         }
                     }
+
+                    let filter2 = postMessage.filter((each) => each.visibility === 'followers');
+                    const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
+                    const youFollow = us.info?.follow ? us.info.follow : [];
+
+                    for (let i = 0; i < filter2.length; i++) {
+                        const temp2 = postMessage.indexOf(filter2[i]);
+                        if (!youFollow.includes(filter2[i]['creator'])) postMessage.splice(temp2, 1);
+                    }
+
                     return res.status(200).json(postMessage);
                 }
             } catch (error) {

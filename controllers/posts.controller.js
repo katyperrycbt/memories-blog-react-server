@@ -854,10 +854,10 @@ export const getPosts = async (req, res) => {
                 let filter2 = postMessage.filter((each) => each.visibility === 'followers');
                 const us = mongoose.Types.ObjectId.isValid(req.userId) ? await User.findById(req.userId) : await User.findOne({ ggId: req.userId });
                 const youFollow = us.info?.follow ? us.info.follow : [];
-                
+
                 for (let i = 0; i < filter2.length; i++) {
                     const temp2 = postMessage.indexOf(filter2[i]);
-                    if (!youFollow.includes(filter2[i]['creator'])) postMessage.splice(temp2, 1);
+                    if (!youFollow.includes(filter2[i]['creator']) && filter2[i]['creator'] !== req.userId) postMessage.splice(temp2, 1);
                 }
 
 
@@ -911,7 +911,7 @@ export const getPosts = async (req, res) => {
 
                     for (let i = 0; i < filter2.length; i++) {
                         const temp2 = postMessage.indexOf(filter2[i]);
-                        if (!youFollow.includes(filter2[i]['creator'])) postMessage.splice(temp2, 1);
+                        if (!youFollow.includes(filter2[i]['creator']) && filter2[i]['creator'] !== req.userId) postMessage.splice(temp2, 1);
                     }
 
                     return res.status(200).json(postMessage);
@@ -1006,7 +1006,12 @@ export const createPosts = async (req, res) => {
                         for (let i = 0; i < users.length; i++) {
                             if (users[i].info?.subcribe) {
                                 const temp = blacklist.emailList.filter((email) => email === users[i].email);
-                                if (post.oops) {
+                                if (visibility === 'followers') {
+                                    const youFollow = users[i].info?.follow ? users[i].info.follow : [];
+                                    if (youFollow.includes(post['creator'])) listEmail.push(users[i].email);
+                                    continue;
+                                }
+                                if (post.oops || visibility === 'oops') {
                                     console.log('true');
                                     let temp = '';
                                     if (mongoose.Types.ObjectId.isValid(users[i]._id)) {
@@ -1045,25 +1050,40 @@ export const createPosts = async (req, res) => {
 }
 
 export const updatePost = async (req, res) => {
+    const { userId } = req;
+    if (!userId) return res.status(404).json({ message: 'Unauthorized access!' });
+
     const { id: _id } = req.params;
+
     let post = req.body;
     // console.log(post);
-    if (post.selectedFile) {
-        await cloudinary.v2.uploader.upload(post.selectedFile)
-            .then((result) => {
-                console.log(result.url);
-                post.selectedFile = result.url;
-            }).catch((error) => {
-                console.log(error);
-            });
-    } else {
-        post.selectedFile = '';
+    try {
+        if (post.selectedFile) {
+            await cloudinary.v2.uploader.upload(post.selectedFile)
+                .then((result) => {
+                    console.log(result.url);
+                    post.selectedFile = result.url;
+                }).catch((error) => {
+                    console.log(error);
+                });
+        } 
+        // console.log(post);
+        const prepare = {
+            ...post,
+            modified: true,
+            _id
+        }
+        if (!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No post with that id');
+        // const oldPost = await PostMessage.findById(_id);
+        const updatedPost = await PostMessage.findByIdAndUpdate(_id, { $set: prepare }, { new: true });
+        // console.log(updatePost);
+        // const temp = await PostMessage.findById(_id);
+        // console.log(temp)
+        res.status(201).json(updatedPost);
+    } catch (error) {
+        res.status(404).json({ message: error.message })
+
     }
-    if (!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send('No post with that id');
-
-    const updatedPost = await PostMessage.findByIdAndUpdate(_id, { ...post, _id, modified: true }, { new: true });
-
-    res.json(updatedPost);
 }
 
 export const deletePost = async (req, res) => {

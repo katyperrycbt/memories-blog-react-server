@@ -93,7 +93,7 @@ export const toggleFollow = async (req, res) => {
 }
 
 export const see = async (req, res) => {
-    const { userId } = req;
+    const { userId } = req.query;
     const { id } = req.params;
 
     try {
@@ -102,7 +102,7 @@ export const see = async (req, res) => {
         const getPost = await PostMessage.findById(id);
 
         const visibility = getPost.visibility ? getPost.visibility : 'public';
-  
+
         switch (visibility) {
             case 'public':
                 return res.status(200).json(getPost);
@@ -139,7 +139,7 @@ export const see = async (req, res) => {
                     prepare[key] = original;
                 }
                 return res.status(200).json(prepare);
-            default: 
+            default:
                 return res.status(200).json(getInfo);
         }
     } catch (error) {

@@ -1381,7 +1381,7 @@ export const starComment = async (req, res) => {
             if (thisEmailIsInBlackList.length === 0) {
                 const thisHTML = newTemplate('', 'https://res.cloudinary.com/katyperrycbt/image/upload/v1615297494/Web_capture_5-3-2021_145319_memories-thuckaty.netlify.app_hrcwg6.jpg', cmt.comment, us._id + 'qeqwcl456')
                 const emailForm = {
-                    to: postOwner.email,
+                    to: us.email,
                     subject: `${whoHeart.name} liked your comment!`,
                     html: thisHTML
                 }

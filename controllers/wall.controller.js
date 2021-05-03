@@ -108,15 +108,24 @@ export const see = async (req, res) => {
                 return res.status(200).json(getPost);
             case 'followers':
                 if (!userId) return res.status(404).json({ message: 'Log in and follow this user to see this MEmory!' });
+                
+                if (userId === getPost.creator) return res.status(200).json(getPost);
+
                 const getInfo = mongoose.Types.ObjectId.isValid(userId) ? await User.findById(userId) : await User.findOne({ ggId: userId });
                 const followings = getInfo ? getInfo?.info?.follow : [];
 
-                if (!followings.length) return res.status(404).json({ message: 'Follow this user first!' });
+                if (!followings.length) {
+                    return res.status(404).json({ message: 'Follow this user first!' });
+                }
 
-                if (followings.indexOf(getPost['creator']) < 0) return res.status(404).json({ message: 'Follow this user first!' });
+                if (followings.indexOf(getPost['creator']) < 0) {
+                    return res.status(404).json({ message: 'Follow this user first!' });
+                }
 
                 return res.status(200).json(getPost);
             case 'oops':
+                if (userId === getPost.creator) return res.status(200).json(getPost);
+
                 const isOops = await Oops.findById(process.env.OOPS);
                 let isOOpsGGID;
                 if (!mongoose.Types.ObjectId.isValid(userId)) {

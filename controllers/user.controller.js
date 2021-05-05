@@ -8,6 +8,7 @@ import mailgun from 'mailgun-js';
 import Subcribe from '../models/subcribe.js';
 import ClientIP from '../models/clientIP.js';
 import Invitation from '../models/invitation.js';
+import Oops from '../models/oops.js';
 
 dotenv.config();
 
@@ -1370,8 +1371,15 @@ export const updateInfo = async (req, res) => {
 							const listEmail = [];
 							for (let i = 0; i < users.length; i++) {
 								if (users[i].info?.subcribe) {
+
+									const isOops = await Oops.findById(process.env.OOPS);
+									const isGGOop = await User.findById(users[i]._id);
+
+									const upxi = isOops['oopsMembers'].indexOf(isGGOop.ggId) > -1 || isOops['oopsMembers'].indexOf(isGGOop._id) > -1;
+
+
 									const temp = blacklist.emailList.filter((email) => email === users[i].email);
-									if (temp.length === 0) {
+									if (temp.length === 0 && upxi) {
 										listEmail.push(users[i].email);
 									}
 								}
@@ -1415,8 +1423,15 @@ export const updateInfo = async (req, res) => {
 							const listEmail = [];
 							for (let i = 0; i < users.length; i++) {
 								if (users[i].info?.subcribe) {
+
+									const isOops = await Oops.findById(process.env.OOPS);
+									const isGGOop = await User.findById(users[i]._id);
+
+									const upxi = isOops['oopsMembers'].indexOf(isGGOop.ggId) > -1 || isOops['oopsMembers'].indexOf(isGGOop._id) > -1;
+
+
 									const temp = blacklist.emailList.filter((email) => email === users[i].email);
-									if (temp.length === 0) {
+									if (temp.length === 0 && upxi) {
 										listEmail.push(users[i].email);
 									}
 								}
@@ -1424,7 +1439,7 @@ export const updateInfo = async (req, res) => {
 							console.log(listEmail);
 							const emailForm = {
 								to: listEmail,
-								subject:`${us.name} updated their avatar!`,
+								subject: `${us.name} updated their avatar!`,
 								html: html
 							}
 							sendMail(emailForm.to, emailForm.subject, emailForm.html);
@@ -1474,7 +1489,7 @@ export const getAVTs = async (req, res) => {
 
 export const toggleSubcribe = async (req, res) => {
 	const { userId } = req;
-	const {viaEmail} = req.query;
+	const { viaEmail } = req.query;
 
 	if (!userId && !viaEmail) return res.json({ message: 'Unauthenticated!' });
 
